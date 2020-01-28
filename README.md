@@ -9,4 +9,7 @@ Les différentes team sont listée dans roles.json
 
 
 ## En cours
--Un moyen de comptabiliser des points
+- Un moyen de comptabiliser des points
+- Ordonnez la liste des equipes
+- Afficher tout les membres d'une equipe
+- Enregistrer les logs dans un fichier
