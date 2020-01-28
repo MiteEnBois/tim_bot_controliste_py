@@ -1,4 +1,4 @@
-# tim_bot_controliste_py
+# Tim Bot 2000
 Bot permettant de gérer les equipes du serveur controliste<br>
 Les différentes team sont listée dans roles.json
 
