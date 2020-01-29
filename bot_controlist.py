@@ -36,31 +36,28 @@ def num(rol):
     return len(rol.members)
 
 
-@bot.command(name='list')
-async def list_role(ctx):
-    roles = ctx.guild.roles
-    roles.sort(key=num, reverse=True)
-    txt = "__**Liste des equipes**__\n"
-    i = 0
-    for r in roles:
-        if r.name in roles_list:
-            if i == 0:
-                txt += ":trophy: "
-            txt += "**"+r.name + "**"
-            if i == 0:
-                txt += " :trophy:"
-            txt += " : "+str(len(r.members))+"\n"
-            i += 1
-    await ctx.send(txt)
-    print("list asked at "+ctx.message.created_at.ctime()+" by "+str(ctx.message.author))
-
-
-@bot.command(name='ping')
-async def ping(ctx, *arr):
+@bot.command(name='list', help='Répond avec la liste des teams si passé sans argument, Répond avec la liste des membres d\'une team passée en argument')
+async def list_role(ctx, *arr):
     l = len(arr)
-    role = None
-    msg = ""
-    if l >= 1:
+    if l == 0:
+        roles = ctx.guild.roles
+        roles.sort(key=num, reverse=True)
+        txt = "__**Liste des equipes**__\n"
+        i = 0
+        for r in roles:
+            if r.name in roles_list:
+                if i == 0:
+                    txt += ":trophy: "
+                txt += "**"+r.name + "**"
+                if i == 0:
+                    txt += " :trophy:"
+                txt += " : "+str(len(r.members))+"\n"
+                i += 1
+        await ctx.send(txt)
+        print("list asked at "+ctx.message.created_at.ctime()+" by "+str(ctx.message.author))
+    else:
+        role = None
+        msg = ""
         i = 0
         print("Megaping lancé")
         for r in ctx.guild.roles:
@@ -89,11 +86,14 @@ async def ping(ctx, *arr):
             await ctx.send(txt)
         else:
             await ctx.send("Fail")
-    else:
-        await ctx.send("Pong!")
 
 
-@bot.command(name='rejoin')
+@bot.command(name='ping', help='Pong!')
+async def ping(ctx, *arr):
+    await ctx.send("Pong!")
+
+
+@bot.command(name='rejoin', help="Permet de faire rejoindre dans sa propre team. Ne marche que si l'auteur de la commande est dans une team et si l'invité n'en a pas")
 async def rejoin(ctx, invite: discord.Member):
     auth = ctx.author
     if check_roles(auth) != 1:
@@ -108,7 +108,7 @@ async def rejoin(ctx, invite: discord.Member):
     await ctx.send(auth.name+" a invité "+invite.name+" à rejoindre la "+r.name+"\n")
 
 
-@bot.command(name='degage')
+@bot.command(name='degage', help="Permet de kick quelquun de sa propre team (marche sur soi meme). Ne marche que si l'auteur et le kické sont de la meme team")
 async def degage(ctx, invite: discord.Member):
     auth = ctx.author
     if check_roles(auth) != 1:
