@@ -32,16 +32,56 @@ def get_rol(member):
     return None
 
 
+def num(rol):
+    return len(rol.members)
+
+
 @bot.command(name='list')
 async def list_role(ctx):
     roles = ctx.guild.roles
+    roles.sort(key=num, reverse=True)
     txt = "__**Liste des equipes**__\n"
+    i = 0
     for r in roles:
         if r.name in roles_list:
-            txt += "**"+r.name + "** : "+str(len(r.members)) + "\n"
-
+            if i == 0:
+                txt += ":trophy: "
+            txt += "**"+r.name + "**"
+            if i == 0:
+                txt += " :trophy:"
+            txt += " : "+str(len(r.members))+"\n"
+            i += 1
     await ctx.send(txt)
     print("list asked at "+ctx.message.created_at.ctime()+" by "+str(ctx.message.author))
+
+
+@bot.command(name='ping')
+async def ping(ctx, *arr):
+    l = len(arr)
+    role = None
+    msg = ""
+    if l == 1 or l == 2:
+        for r in ctx.guild.roles:
+            test = arr[0].lower()
+            if l == 2:
+                test += arr[1].lower()
+            name = r.name.replace(" ", "").lower()
+            if(test == "team"):
+                break
+            if (l == 2 and test == name) or (l == 1 and test in name) or (test == r.mention):
+                role = r
+                break
+        if role is not None:
+            txt = "__**Liste des membres de "+role.name+" :**__\n"
+            for r in role.members:
+                txt += "  -"+r.name + "\n"
+            if len(role.members) == 0:
+                txt += "Personne :("
+            await ctx.send(txt)
+        else:
+            await ctx.send("Fail")
+    else:
+        await ctx.send("Pong!")
 
 
 @bot.command(name='rejoin')
@@ -85,7 +125,8 @@ async def on_ready():
 
 @bot.event
 async def on_command_error(ctx, error):
-    if isinstance(error, commands.errors.CheckFailure):
-        await ctx.send('You do not have the correct role for this command.')
+    # if isinstance(error, commands.errors.CheckFailure):
+    #     await ctx.send('You do not have the correct role for this command.')
+    print(error)
 
 bot.run(TOKEN)
