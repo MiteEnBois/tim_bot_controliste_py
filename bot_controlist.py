@@ -78,7 +78,7 @@ async def list_role(ctx, *arr):
         elif i > 1:
             await ctx.send("Nom trop vague, veuillez réessayer")
         elif role is not None:
-            txt = "__**Liste des membres de "+role.name+" :**__\n"
+            txt = "__**Liste des membres de la "+role.name+" :**__\n"
             for r in role.members:
                 txt += "  -"+r.name + "\n"
             if len(role.members) == 0:
