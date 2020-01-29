@@ -54,12 +54,10 @@ async def list_role(ctx, *arr):
                 txt += " : "+str(len(r.members))+"\n"
                 i += 1
         await ctx.send(txt)
-        print("list asked at "+ctx.message.created_at.ctime()+" by "+str(ctx.message.author))
+
     else:
         role = None
-        msg = ""
         i = 0
-        print("Megaping lancé")
         test = ""
         for n in arr:
             test += n
@@ -85,6 +83,7 @@ async def list_role(ctx, *arr):
             await ctx.send(txt)
         else:
             await ctx.send("Fail")
+    print("list asked at "+ctx.message.created_at.ctime()+" by "+str(ctx.message.author))
 
 
 @bot.command(name='ping', help='Pong!')
