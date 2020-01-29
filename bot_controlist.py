@@ -60,18 +60,27 @@ async def ping(ctx, *arr):
     l = len(arr)
     role = None
     msg = ""
-    if l == 1 or l == 2:
+    if l >= 1:
+        i = 0
+        print("Megaping lancé")
         for r in ctx.guild.roles:
-            test = arr[0].lower()
-            if l == 2:
-                test += arr[1].lower()
+            test = ""
+            for n in arr:
+                test += n
+            test.replace(" ", "").lower()
             name = r.name.replace(" ", "").lower()
             if(test == "team"):
                 break
-            if (l == 2 and test == name) or (l == 1 and test in name) or (test == r.mention):
-                role = r
-                break
-        if role is not None:
+            # if (l == 2 and test == name) or (l == 1 and test in name) or (test == r.mention):
+            if (test in name) or (test == r.mention):
+                if r.name in roles_list:
+                    role = r
+                    i += 1
+        if i == 0:
+            await ctx.send("Nom d'équipe pas trouvé, veuillez réessayer")
+        elif i > 1:
+            await ctx.send("Nom trop vague, veuillez réessayer")
+        elif role is not None:
             txt = "__**Liste des membres de "+role.name+" :**__\n"
             for r in role.members:
                 txt += "  -"+r.name + "\n"
