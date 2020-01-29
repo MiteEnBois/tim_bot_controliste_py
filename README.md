@@ -4,7 +4,8 @@ Les différentes team sont listée dans roles.json
 
 ## Commandes
 <b>!ping </b>: Pong!<br>
-<b>!list </b>: affiche les team et le nombre de membre. Maintenant ordonné!<br>
+<b>!help \<commande\></b>: affiche de l'aide<br>
+<b>!list \<team\></b>: affiche les team et le nombre de membre. Maintenant ordonné! Si une team est donnée en argument, affiche la liste des membres de ladite team<br>
 <b>!rejoin \<membre\> </b>: Permet de faire rejoindre <membre> dans sa propre team. Ne marche que si l'auteur de la commande est dans une team et si l'invité n'en a pas<br>
 <b>!degage \<membre\> </b>: Permet de kick quelquun de sa propre team (marche sur soi meme). Ne marche que si l'auteur et le kické sont de la meme team
 
