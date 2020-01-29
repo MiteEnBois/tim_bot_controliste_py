@@ -60,15 +60,14 @@ async def list_role(ctx, *arr):
         msg = ""
         i = 0
         print("Megaping lancé")
+        test = ""
+        for n in arr:
+            test += n
+        test.replace(" ", "").lower()
         for r in ctx.guild.roles:
-            test = ""
-            for n in arr:
-                test += n
-            test.replace(" ", "").lower()
             name = r.name.replace(" ", "").lower()
-            if(test == "team"):
+            if test in "team":
                 break
-            # if (l == 2 and test == name) or (l == 1 and test in name) or (test == r.mention):
             if (test in name) or (test == r.mention):
                 if r.name in roles_list:
                     role = r
