@@ -10,6 +10,7 @@ Les différentes team sont listée dans roles.json
 <b>!degage \<membre\> </b>: Permet de kick quelquun de sa propre team (marche sur soi meme). Ne marche que si l'auteur et le kické sont de la meme team
 
 
-## En cours
+## En cours de développement
 - Un moyen de comptabiliser des points
 - Enregistrer les logs dans un fichier
+- Une commande qui affiche le changelog
