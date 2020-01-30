@@ -1,2 +1,4 @@
 .env
 botpy.code-workspace
+test.py
+test.yml
