@@ -2,3 +2,6 @@
 botpy.code-workspace
 test.py
 test.yml
+bigdump.yml
+bigdump copy.yml
+bot_with_bigdump.py
