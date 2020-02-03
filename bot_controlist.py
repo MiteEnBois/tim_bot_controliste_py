@@ -6,6 +6,8 @@ import yaml
 import datetime
 import discord
 import time
+import math
+import re
 from copy import deepcopy
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -15,9 +17,8 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 
 bot = commands.Bot(command_prefix='!')
 
-global PATH, BIGDATA, MAX_BEFORE_BACKUP, MAX_BEFORE_MSG, ROLES_LIST, MANUAL_BACKUP
+global PATH, BIGDATA, MAX_BEFORE_BACKUP, MAX_BEFORE_MSG, ROLES_LIST
 
-MANUAL_BACKUP = False
 PATH = 'score.yml'
 MAX_BEFORE_BACKUP = 30*60
 MAX_BEFORE_MSG = 5
@@ -30,6 +31,14 @@ with open(PATH) as f:
     ROLES_LIST = []
     for n in data:
         ROLES_LIST.append(n["name"])
+
+
+@bot.command(name='changelog', help='Affiche le changelog')
+async def changelog(ctx):
+    with open('changelog.txt', encoding="utf-8") as f:
+        msg = f.read()
+        await ctx.send(msg)
+        f.close()
 
 
 def backup_score():
@@ -56,6 +65,10 @@ def num(rol):
     return len(rol.members)
 
 
+def sort_name(rol):
+    return rol.name
+
+
 @bot.command(name='list', help='Répond avec la liste des teams si passé sans argument, Répond avec la liste des membres d\'une team passée en argument')
 async def list_role(ctx, *arr):
     l = len(arr)
@@ -64,15 +77,19 @@ async def list_role(ctx, *arr):
         roles.sort(key=num, reverse=True)
         txt = "__**Liste des equipes**__\n"
         i = 0
+        top = 0
         for r in roles:
             if r.name in ROLES_LIST:
+                membs = len(r.members)
                 if i == 0:
+                    top = membs
+                    i += 1
+                if membs == top:
                     txt += ":trophy: "
                 txt += "**"+r.name + "**"
-                if i == 0:
+                if membs == top:
                     txt += " :trophy:"
                 txt += " : "+str(len(r.members))+"\n"
-                i += 1
         await ctx.send(txt)
 
     else:
@@ -81,12 +98,12 @@ async def list_role(ctx, *arr):
         test = ""
         for n in arr:
             test += n
-        test.replace(" ", "").lower()
+        test.replace(" ", "")
         for r in ctx.guild.roles:
-            name = r.name.replace(" ", "").lower()
+            name = r.name.replace(" ", "")
             if test in "team":
                 break
-            if (test in name) or (test == r.mention):
+            if (test.lower() in name.lower()) or (test == r.mention):
                 if r.name in ROLES_LIST:
                     role = r
                     i += 1
@@ -96,9 +113,11 @@ async def list_role(ctx, *arr):
             await ctx.send("Nom trop vague, veuillez réessayer")
         elif role is not None:
             txt = "__**Liste des membres de la "+role.name+" :**__\n"
-            for r in role.members:
+            mem_list = role.members
+            mem_list.sort(key=sort_name)
+            for r in mem_list:
                 txt += "  -"+r.name + "\n"
-            if len(role.members) == 0:
+            if len(mem_list) == 0:
                 txt += "Personne :("
             await ctx.send(txt)
         else:
@@ -109,6 +128,38 @@ async def list_role(ctx, *arr):
 @bot.command(name='ping', help='Pong!')
 async def ping(ctx):
     await ctx.send("Pong!")
+
+
+@bot.command(name='longlist', help='Pong!')
+async def longlist(ctx):
+    total = 0
+    roles = ctx.guild.roles
+    roles.sort(key=num, reverse=True)
+    txt = "__**Liste des equipes**__\n"
+    i = 0
+    top = 0
+    for r in roles:
+        if r.name in ROLES_LIST:
+            membs = len(r.members)
+            if i == 0:
+                top = membs
+                i += 1
+            if membs == top:
+                txt += ":trophy: "
+            txt += "**"+r.name + "**"
+            if membs == top:
+                txt += " :trophy:"
+            txt += " : "+str(len(r.members))+"\n"
+            mem_list = r.members
+            mem_list.sort(key=sort_name)
+            for m in mem_list:
+                txt += "  -"+m.name + "\n"
+                total += 1
+            if len(mem_list) == 0:
+                txt += "  Personne :(\n"
+    txt += "\n**TOTAL : "+str(total)+"**\n"
+    txt += "\n**POURCENTAGE DES MEMBRES AYANT UNE EQUIPE : "+str(math.ceil(total/len(ctx.guild.members)*100))+"%**"
+    await ctx.send(txt)
 
 
 def sort_data(d):
@@ -133,9 +184,9 @@ async def score(ctx):
     await ctx.send(txt)
 
 
-@bot.command(name='back', help='Enregistre le score actuel. Activé : '+str(MANUAL_BACKUP))
+@bot.command(name='back', help='Enregistre le score actuel. Commande réservée à Tim')
 async def backup(ctx):
-    if MANUAL_BACKUP:
+    if ctx.author.id == 123742890902945793:
         backup_score()
         await ctx.send("backed")
 
@@ -202,7 +253,11 @@ def score_management(message):
 def reponses_timbot(message):
     if "timbot" in message.content.lower():
         if "merci" in message.content.lower():
-            return"Mais de rien, "+str(message.author.display_name)+"!"
+            return "Mais de rien, "+str(message.author.display_name)+"!"
+        if "bon" in message.content.lower():
+            return ":3"
+        if "nul" in message.content.lower() or "mauvais" in message.content.lower() or "merde" in message.content.lower():
+            return ":'<"
         if "hein" in message.content.lower() and "?" in message.content.lower():
             if message.author.id == 123742890902945793:
                 return "Mais oui, évidemment "+str(message.author.display_name)+"!"

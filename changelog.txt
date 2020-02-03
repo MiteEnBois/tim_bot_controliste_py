@@ -1,0 +1,11 @@
+**CHANGELOG 3 FEVRIER 2020**
+
+>>>Ajout de la commande !changelog, qui affiche le contenu de ce fichier
+Ajout de la commande !longlist, qui affiche une liste complexe des équipes ainsi que quelques nombres
+
+Les equipes à ex-aequo auront toute les trophées dans l'affichage des listes
+Les problèmes de détections de noms d'equipes pour la commande !list ont été réparés
+Les listes de mmebres sont dorénavant dans l'ordre alphabétique
+La commande !backup est activée mais réservée à Tim
++ de réponses de la part du bot
+
