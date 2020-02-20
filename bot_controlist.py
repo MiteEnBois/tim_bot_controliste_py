@@ -17,20 +17,27 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 
 bot = commands.Bot(command_prefix='!')
 
-global PATH, BIGDATA, MAX_BEFORE_BACKUP, MAX_BEFORE_MSG, ROLES_LIST
+global PATH_SCORE, PATH_CLUB, BIGDATA, MAX_BEFORE_BACKUP, MAX_BEFORE_MSG, ROLES_LIST, CLUBS_LIST
 
-PATH = 'score.yml'
+PATH_SCORE = 'score.yml'
+PATH_CLUB = 'clubs.yml'
 MAX_BEFORE_BACKUP = 30*60
 MAX_BEFORE_MSG = 5
 
 
-with open(PATH) as f:
+with open(PATH_SCORE) as f:
     data = yaml.load(f, Loader=yaml.FullLoader)
     BIGDATA = data
 
     ROLES_LIST = []
     for n in data:
         ROLES_LIST.append(n["name"])
+    f.close()
+
+with open(PATH_CLUB) as f:
+    data = yaml.load(f, Loader=yaml.FullLoader)
+    CLUBS_LIST = data["clubs"]
+    f.close()
 
 
 @bot.command(name='changelog', help='Affiche le changelog')
@@ -44,19 +51,20 @@ async def changelog(ctx):
 def backup_score():
     with open('score.yml', mode="r+") as f:
         data = yaml.dump(BIGDATA, f)
+        f.close()
 
 
-def check_roles(member):
+def check_roles(member, li):
     i = 0
     for r in member.roles:
-        if r.name in ROLES_LIST:
+        if r.name in li:
             i += 1
     return i
 
 
-def get_rol(member):
+def get_rol(member, li):
     for r in member.roles:
-        if r.name in ROLES_LIST:
+        if r.name in li:
             return r
     return None
 
@@ -67,6 +75,59 @@ def num(rol):
 
 def sort_name(rol):
     return rol.name
+
+
+def sort_data(d):
+    return d["score"]
+
+
+@bot.command(name='ping', help='Pong!')
+async def ping(ctx):
+    await ctx.send("Pong!")
+
+
+@bot.command(name='list_club', help='Affiche la liste des clubs reconnus')
+async def list_club(ctx):
+    msg = "Liste des clubs reconnus: \n"
+    for r in CLUBS_LIST:
+        msg += f"- {r}\n"
+    await ctx.send(msg)
+
+
+@bot.command(name='club', help='Rejoin ou quitte un club')
+async def club(ctx, *arr):
+    l = len(arr)
+    if l == 0:
+        await ctx.send("Pas d'entrée détecté, veuillez réessayer")
+    test = ""
+    i = 0
+    for n in arr:
+        test += str(n)
+    test.replace(" ", "")
+    for r in ctx.guild.roles:
+        name = r.name.replace(" ", "")
+        if test in "club":
+            break
+        if (test.lower() in name.lower()) or (test == r.mention):
+            if r.name in CLUBS_LIST:
+                role = r
+                i += 1
+    if i == 0:
+        await ctx.send("Club pas trouvé, veuillez réessayer")
+    elif i > 1:
+        await ctx.send("Nom trop vague, veuillez réessayer")
+    elif role is not None:
+        for r in ctx.author.roles:
+            if r == role:
+                await ctx.author.remove_roles(role)
+                await ctx.send(f"{ctx.author.display_name} a quitté le {role.name}")
+                return
+        await ctx.author.add_roles(role)
+        await ctx.send(f"{ctx.author.display_name} a rejoin le {role.name}")
+        return
+
+    else:
+        await ctx.send("Fail")
 
 
 @bot.command(name='list', help='Répond avec la liste des teams si passé sans argument, Répond avec la liste des membres d\'une team passée en argument')
@@ -125,11 +186,6 @@ async def list_role(ctx, *arr):
     print("list asked at "+ctx.message.created_at.ctime()+" by "+str(ctx.message.author))
 
 
-@bot.command(name='ping', help='Pong!')
-async def ping(ctx):
-    await ctx.send("Pong!")
-
-
 @bot.command(name='longlist', help='Pong!')
 async def longlist(ctx):
     total = 0
@@ -160,10 +216,6 @@ async def longlist(ctx):
     txt += "\n**TOTAL : "+str(total)+"**\n"
     txt += "\n**POURCENTAGE DES MEMBRES AYANT UNE EQUIPE : "+str(math.ceil(total/len(ctx.guild.members)*100))+"%**"
     await ctx.send(txt)
-
-
-def sort_data(d):
-    return d["score"]
 
 
 @bot.command(name='score', help='Affiche le score actuel de chaque equipe')
@@ -201,13 +253,13 @@ async def limit(ctx):
 @bot.command(name='join', help="Permet de faire rejoindre dans sa propre team. Ne marche que si l'auteur de la commande est dans une team et si l'invité n'en a pas")
 async def rejoin(ctx, invite: discord.Member):
     auth = ctx.author
-    if check_roles(auth) != 1:
+    if check_roles(auth, ROLES_LIST) != 1:
         await ctx.send(auth.name+" n'a pas de roles, ou en a meme trop. C'est zarb")
         return
-    if check_roles(invite) != 0:
+    if check_roles(invite, ROLES_LIST) != 0:
         await ctx.send(invite.name+" a déjà un role. Impossible de l'inviter")
         return
-    r = get_rol(auth)
+    r = get_rol(auth, ROLES_LIST)
     await invite.add_roles(r)
     print(str(auth)+" a invité "+str(invite)+" à rejoindre la "+r.name+" à "+ctx.message.created_at.ctime())
     await ctx.send(auth.name+" a invité "+invite.name+" à rejoindre la "+r.name+"\n")
@@ -216,14 +268,14 @@ async def rejoin(ctx, invite: discord.Member):
 @bot.command(name='degage', help="Permet de kick quelquun de sa propre team (marche sur soi meme). Ne marche que si l'auteur et le kické sont de la meme team")
 async def degage(ctx, invite: discord.Member):
     auth = ctx.author
-    if check_roles(auth) != 1:
+    if check_roles(auth, ROLES_LIST) != 1:
         await ctx.send(auth.name+" n'a pas de roles, ou en a meme trop. C'est zarb")
         return
-    if check_roles(invite) != 1:
+    if check_roles(invite, ROLES_LIST) != 1:
         await ctx.send(invite.name+" n'a pas de roles, ou en a meme trop. C'est zarb")
         return
-    ra = get_rol(auth)
-    ri = get_rol(invite)
+    ra = get_rol(auth, ROLES_LIST)
+    ri = get_rol(invite, ROLES_LIST)
     if ri != ra:
         await ctx.send("les roles ne sont pas identiques. Degage annulé")
         return
@@ -238,7 +290,7 @@ async def on_ready():
 
 
 def score_management(message):
-    role = get_rol(message.author)
+    role = get_rol(message.author, ROLES_LIST)
     if role is not None:
         for d in BIGDATA:
             if(role.name == d["name"]):
@@ -274,7 +326,7 @@ async def on_message(message):
         await message.channel.send(msg)
     score_management(message)
 
-    back = time.time()-os.path.getmtime(PATH)
+    back = time.time()-os.path.getmtime(PATH_SCORE)
     if back >= MAX_BEFORE_BACKUP:
         backup_score()
         print("backing")
